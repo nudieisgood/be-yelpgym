@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import bodyParser from "body-parser";
 
 import Gym from "./models/Gym.js";
 
@@ -18,16 +19,43 @@ db.once("open", () => {
 });
 
 app.use(cors(corsOptions));
+app.use(bodyParser.json());
 
 app.get("/gyms", async (req, res) => {
   const gyms = await Gym.find({});
   res.send({ gyms });
 });
 
+app.post("/gyms/new", async (req, res) => {
+  const gym = new Gym(req.body);
+  await gym.save();
+  res.send({ newGymId: gym._id });
+});
+
+app.get("/gym/:id", async (req, res) => {
+  const gym = await Gym.findById(req.params.id);
+  res.send({ gym });
+});
+
 app.get("/", (req, res) => {
   res.send("exporess app is answering");
 });
 
+app.post("/gyms/:id/edit", async (req, res) => {
+  console.log(req.body);
+  const gym = await Gym.findByIdAndUpdate(req.params.id, { ...req.body });
+  res.send({ newGymId: gym._id });
+});
+
+// app.get("/gyms/:id/delete", async (req, res) => {
+//   const gym = await Gym.findByIdAndDelete(req.params.id);
+//   res.status(200).send("ok");
+// });
+
+app.delete("/gyms/:id", async (req, res) => {
+  const gym = await Gym.findByIdAndDelete(req.params.id);
+  res.status(200).send("ok");
+});
 app.listen(3001, () => {
   console.log("backend yelpgym saving on 3001");
 });
